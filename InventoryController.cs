@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -25,8 +25,10 @@ namespace Odontogest.Controllers
             //_enviroment = enviroment;
         }
 
-        [BindProperty]
-        private Inventory inventory1 { get; set; }
+        
+        //public Inventory listInven { get; set; }
+
+        //var listInve = new Inventory();
 
         private void drownCategori(object selecCategory = null)
         {
@@ -51,14 +53,14 @@ namespace Odontogest.Controllers
                 Selectstories);
         }
 
+        
 
         // GET: Inventory
         public ActionResult ListInventory()
         {
-            var listInve = new Inventory();
-
-            drownStore(listInve.FkStore);
-            drownCategori(listInve.FkCategory);
+            var listInven = new Inventory();
+            drownStore(listInven.FkStore);
+            drownCategori(listInven.FkCategory);
 
             var inventary = _context.Inventories
                 .Include(c => c.FkCategoryNavigation)
@@ -79,25 +81,28 @@ namespace Odontogest.Controllers
         {
             ViewBag.PageName = id == null ? "Add Inventory" : "Edit Inventory";
             ViewBag.isExit = id == null ? false : true;
+            var listInven = new Inventory();
 
             if (id == null)
             {
+                drownStore(listInven.FkStore);
+                drownCategori(listInven.FkCategory);
                 return View();
             }
             else
             {
-                var listInve = _context.Inventories
+                listInven = _context.Inventories
                     .AsNoTracking()
                     .FirstOrDefault(i => id == i.IdInventory);
 
-                if (listInve == null)
+                if (listInven == null)
                 {
                     NotFound();
                 }
 
-                drownStore(listInve.FkStore);
-                drownCategori(listInve.FkCategory);
-                return View(listInve);
+                drownStore(listInven.FkStore);
+                drownCategori(listInven.FkCategory);
+                return View(listInven);
             }
 
         }
@@ -112,14 +117,16 @@ namespace Odontogest.Controllers
             bool Exits = false;
 
             string folderpaht = @"wwwroot\Images\Inventory";
+            var paht = "";
+            var ft = "";
 
-            
-                        
+
             Inventory inventories = _context.Inventories
                 .AsNoTracking()
                 .FirstOrDefault(i => id == i.IdInventory);
+            
 
-            drownStore(inventory.FkStore);
+                drownStore(inventory.FkStore);
             drownCategori(inventory.FkCategory);
 
             if (!Directory.Exists(folderpaht))
@@ -130,6 +137,7 @@ namespace Odontogest.Controllers
             if (inventories != null)
             {
                 Exits = true;
+                
             }
             else
             {
@@ -141,11 +149,25 @@ namespace Odontogest.Controllers
 
                 if (upload == null)
                 {
-                    string paht = @"wwwroot\Images\Inventory\avatar.png";
+                    //var ft = _context.Inventories.SingleOrDefault(i => i.IdInventory == inventories.IdInventory).Image;
+
+                    if (inventories.Image == null)
+                    {
+                        ft = "avatar.PNG";
+                    }
+                    else
+                    {
+                        ft = inventories.Image;
+                    }
+
+                    
+
+                    paht = @"wwwroot\Images\Inventory\"+ft;
+                    
 
                     using (var str = new FileStream(paht, FileMode.Open, FileAccess.Read))
                     {
-                        upload = new FormFile(str, 0, str.Length, "avatar.png", "avatar.png");
+                        upload = new FormFile(str, 0, str.Length, ft, ft);
 
                         inventories.NameInventory = inventory.NameInventory;
                         inventories.FkCategory = inventory.FkCategory;
@@ -154,7 +176,9 @@ namespace Odontogest.Controllers
                         inventories.Quantity = inventory.Quantity;
                         inventories.QuantityAvailable = inventory.QuantityAvailable;
                         inventories.Description = inventory.Description;
+
                         inventories.Image = upload.FileName;
+
                     }
 
                     if (Exits)
@@ -173,11 +197,12 @@ namespace Odontogest.Controllers
                 }
                 else
                 {
-
+                    paht = @"wwwroot\Images\Inventory\"+inventories.Image;
                     var file = Path.Combine(folderpaht, upload.FileName);
 
                     try
                     {
+                        
                         using (var stream = new FileStream(file, FileMode.Create))
                         {
                             upload.CopyTo(stream);
@@ -190,6 +215,8 @@ namespace Odontogest.Controllers
                             inventories.QuantityAvailable = inventory.QuantityAvailable;
                             inventories.Description = inventory.Description;
                             inventories.Image = upload.FileName;
+
+                            ViewBag.image = inventories.Image;
 
                         }
 
@@ -269,48 +296,3 @@ namespace Odontogest.Controllers
                
     }
 }
-
-
-//inventories.NameInventory = inventory.NameInventory;
-//inventories.FkCategory = inventory.FkCategory;
-//inventories.FkStore = inventory.FkStore;
-//inventories.Price = inventory.Price;
-//inventories.Quantity = inventory.Quantity;
-//inventories.QuantityAvailable = inventory.QuantityAvailable;
-//inventories.Description = inventory.Description;
-//inventories.Image = inventory.Image;
-
-//if (await TryUpdateModelAsync<Inventory>(inventories, "",
-//               i => i.NameInventory,
-//               i => i.FkCategory,
-//               i => i.FkStore,
-//               i => i.Price,
-//               i => i.Quantity,
-//               i => i.Description,
-//               i => i.Image))
-//{
-//    try
-//    {
-//        if (Exits)
-//        {
-//            _context.Update(inventories);
-//        }
-//        else
-//        {
-//            _context.Add(inventories);
-//        }
-
-//        _context.SaveChanges();
-
-//    }
-//    catch (DbUpdateException)
-//    {
-//        return View();
-//    }
-
-//    return RedirectToAction(nameof(ListInventory));
-//}
-
-//drownStore(inventories.FkStore);
-//drownCategori(inventories.FkCategory);
-//return View(inventories);
